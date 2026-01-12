@@ -83,8 +83,14 @@ in pkgs.gcc13Stdenv.mkDerivation rec {
   '';
 
   installPhase = ''
-    mkdir -p $out/bin
-    cp build/storage $out/bin/
+    if [ -f build/storage ]; then
+      mkdir -p $out/bin
+      cp build/storage $out/bin/
+    else
+      mkdir -p $out/lib $out/include
+      cp build/libstorage* $out/lib/
+      cp library/libstorage.h $out/include/
+    fi
   '';
 
   meta = with pkgs.lib; {
