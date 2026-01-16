@@ -3,7 +3,6 @@ import pkg/questionable/results
 import pkg/confutils
 import pkg/chronicles
 import pkg/chronos/asyncproc
-import pkg/ethers
 import pkg/libp2p
 import std/os
 import std/strutils
@@ -70,11 +69,6 @@ proc config(node: CodexProcess): CodexConf {.raises: [CodexProcessError].} =
 
 proc dataDir(node: CodexProcess): string {.raises: [CodexProcessError].} =
   return node.config.dataDir.string
-
-proc ethAccount*(node: CodexProcess): Address {.raises: [CodexProcessError].} =
-  without ethAccount =? node.config.ethAccount:
-    raiseAssert "eth account not set"
-  return Address(ethAccount)
 
 proc apiUrl*(node: CodexProcess): string {.raises: [CodexProcessError].} =
   let config = node.config

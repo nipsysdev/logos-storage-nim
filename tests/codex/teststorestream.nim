@@ -1,6 +1,6 @@
 import pkg/chronos
 
-import pkg/codex/[streams, stores, indexingstrategy, manifest, blocktype as bt]
+import pkg/codex/[streams, stores, manifest, blocktype as bt]
 
 import ../asynctest
 import ./examples
@@ -106,24 +106,5 @@ suite "StoreStream - Size Tests":
     )
 
     stream = StoreStream.new(CacheStore.new(), manifest)
-
-    check stream.size == 80
-
-  test "Should not count parity/padding bytes as part of stream size":
-    let protectedManifest = Manifest.new(
-      treeCid = Cid.example,
-      datasetSize = 120.NBytes, # size including parity bytes
-      blockSize = 10.NBytes,
-      version = CIDv1,
-      hcodec = Sha256HashCodec,
-      codec = BlockCodec,
-      ecK = 2,
-      ecM = 1,
-      originalTreeCid = Cid.example,
-      originalDatasetSize = 80.NBytes, # size without parity bytes
-      strategy = StrategyType.SteppedStrategy,
-    )
-
-    stream = StoreStream.new(CacheStore.new(), protectedManifest)
 
     check stream.size == 80

@@ -98,11 +98,6 @@ all: | build deps
 	echo -e $(BUILD_MSG) "build/$@" && \
 		$(ENV_SCRIPT) nim storage $(NIM_PARAMS) build.nims
 
-# Build tools/cirdl
-cirdl: | deps
-	echo -e $(BUILD_MSG) "build/$@" && \
-		$(ENV_SCRIPT) nim toolsCirdl $(NIM_PARAMS) build.nims
-
 # must be included after the default target
 -include $(BUILD_SYSTEM_DIR)/makefiles/targets.mk
 
@@ -135,25 +130,6 @@ test: | build deps
 	echo -e $(BUILD_MSG) "build/$@" && \
 		$(ENV_SCRIPT) nim test $(NIM_PARAMS) build.nims
 
-# Builds and runs the smart contract tests
-testContracts: | build deps
-	echo -e $(BUILD_MSG) "build/$@" && \
-		$(ENV_SCRIPT) nim testContracts $(NIM_PARAMS) --define:ws_resubscribe=240 build.nims
-
-TEST_PARAMS :=
-ifdef DEBUG
-	TEST_PARAMS := $(TEST_PARAMS) -d:DebugTestHarness=$(DEBUG)
-  TEST_PARAMS := $(TEST_PARAMS) -d:NoCodexLogFilters=$(DEBUG)
-  TEST_PARAMS := $(TEST_PARAMS) -d:ShowContinuousStatusUpdates=$(DEBUG)
-  TEST_PARAMS := $(TEST_PARAMS) -d:DebugHardhat=$(DEBUG)
-endif
-ifdef TEST_TIMEOUT
-  TEST_PARAMS := $(TEST_PARAMS) -d:TestTimeout=$(TEST_TIMEOUT)
-endif
-ifdef PARALLEL
-  TEST_PARAMS := $(TEST_PARAMS) -d:EnableParallelTests=$(PARALLEL)
-endif
-
 # Builds and runs the integration tests
 testIntegration: | build deps
 	echo -e $(BUILD_MSG) "build/$@" && \
@@ -163,16 +139,6 @@ testIntegration: | build deps
 testAll: | build deps
 	echo -e $(BUILD_MSG) "build/$@" && \
 		$(ENV_SCRIPT) nim testAll $(NIM_PARAMS) build.nims
-
-# Builds and runs Taiko L2 tests
-testTaiko: | build deps
-	echo -e $(BUILD_MSG) "build/$@" && \
-		$(ENV_SCRIPT) nim testTaiko $(NIM_PARAMS) build.nims
-
-# Builds and runs tool tests
-testTools: | cirdl
-	echo -e $(BUILD_MSG) "build/$@" && \
-		$(ENV_SCRIPT) nim testTools $(NIM_PARAMS) build.nims
 
 # nim-libbacktrace
 LIBBACKTRACE_MAKE_FLAGS := -C vendor/nim-libbacktrace --no-print-directory BUILD_CXX_LIB=0
@@ -274,15 +240,15 @@ libstorage:
 
 ifeq ($(STATIC), 1)
 		echo -e $(BUILD_MSG) "build/$@.a" && \
-		$(ENV_SCRIPT) nim libstorageStatic $(NIM_PARAMS) -d:LeopardCmakeFlags="\"-DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release\"" codex.nims
+		$(ENV_SCRIPT) nim libstorageStatic $(NIM_PARAMS) codex.nims
 else ifeq ($(detected_OS),Windows)
 		echo -e $(BUILD_MSG) "build/$@.dll" && \
-		$(ENV_SCRIPT) nim libstorageDynamic $(NIM_PARAMS) -d:LeopardCmakeFlags="\"-G \\\"MSYS Makefiles\\\" -DCMAKE_BUILD_TYPE=Release\"" codex.nims
+		$(ENV_SCRIPT) nim libstorageDynamic $(NIM_PARAMS) codex.nims
 else ifeq ($(detected_OS),macOS)
 		echo -e $(BUILD_MSG) "build/$@.dylib" && \
-		$(ENV_SCRIPT) nim libstorageDynamic $(NIM_PARAMS) -d:LeopardCmakeFlags="\"-DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release\"" codex.nims
+		$(ENV_SCRIPT) nim libstorageDynamic $(NIM_PARAMS) codex.nims
 else
 		echo -e $(BUILD_MSG) "build/$@.so" && \
-		$(ENV_SCRIPT) nim libstorageDynamic $(NIM_PARAMS) -d:LeopardCmakeFlags="\"-DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release\"" codex.nims
+		$(ENV_SCRIPT) nim libstorageDynamic $(NIM_PARAMS) codex.nims
 endif
 endif # "variables.mk" was not included
