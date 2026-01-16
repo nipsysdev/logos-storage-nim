@@ -11,9 +11,7 @@ on:
 env:
   cache_nonce: 0 # Allows for easily busting actions/cache caches
   nim_version: pinned
-  rust_version: 1.79.0
   storage_binary_base: storage
-  cirdl_binary_base: cirdl
   build_dir: build
   nim_flags: ''
   windows_libs: 'libstdc++-6.dll libgomp-1.dll libgcc_s_seh-1.dll libwinpthread-1.dll'
@@ -30,10 +28,10 @@ jobs:
       uses: fabiocaccamo/create-matrix-action@v5
       with:
         matrix: |
-          os {linux},   cpu {amd64}, builder {ubuntu-22.04},     nim_version {${{ env.nim_version }}}, rust_version {${{ env.rust_version }}}, shell {bash --noprofile --norc -e -o pipefail}
-          os {linux},   cpu {arm64}, builder {ubuntu-22.04-arm}, nim_version {${{ env.nim_version }}}, rust_version {${{ env.rust_version }}}, shell {bash --noprofile --norc -e -o pipefail}
-          os {macos},   cpu {arm64}, builder {macos-14},         nim_version {${{ env.nim_version }}}, rust_version {${{ env.rust_version }}}, shell {bash --noprofile --norc -e -o pipefail}
-          os {windows}, cpu {amd64}, builder {windows-latest},   nim_version {${{ env.nim_version }}}, rust_version {${{ env.rust_version }}}, shell {msys2}
+          os {linux},   cpu {amd64}, builder {ubuntu-22.04},     nim_version {${{ env.nim_version }}}, shell {bash --noprofile --norc -e -o pipefail}
+          os {linux},   cpu {arm64}, builder {ubuntu-22.04-arm}, nim_version {${{ env.nim_version }}}, shell {bash --noprofile --norc -e -o pipefail}
+          os {macos},   cpu {arm64}, builder {macos-14},         nim_version {${{ env.nim_version }}}, shell {bash --noprofile --norc -e -o pipefail}
+          os {windows}, cpu {amd64}, builder {windows-latest},   nim_version {${{ env.nim_version }}}, shell {msys2}
 
   # Build
   build:
@@ -63,7 +61,6 @@ jobs:
           cpu: ${{ matrix.cpu }}
           shell: ${{ matrix.shell }}
           nim_version: ${{ matrix.nim_version }}
-          rust_version: ${{ matrix.rust_version }}
 
       - name: Release - Compute binary name
         run: |
@@ -74,18 +71,14 @@ jobs:
           esac
           github_ref_name="${GITHUB_REF_NAME/\//-}"
           storage_binary="${{ env.storage_binary_base }}-${github_ref_name}-${os_name}-${{ matrix.cpu }}"
-          cirdl_binary="${{ env.cirdl_binary_base }}-${github_ref_name}-${os_name}-${{ matrix.cpu }}"
           if [[ ${os_name} == "windows" ]]; then
             storage_binary="${storage_binary}.exe"
-            cirdl_binary="${cirdl_binary}.exe"
           fi
           echo "storage_binary=${storage_binary}" >>$GITHUB_ENV
-          echo "cirdl_binary=${cirdl_binary}" >>$GITHUB_ENV
 
       - name: Release - Build
         run: |
           make NIMFLAGS="--out:${{ env.build_dir }}/${{ env.storage_binary }} ${{ env.nim_flags }}"
-          make cirdl NIMFLAGS="--out:${{ env.build_dir }}/${{ env.cirdl_binary }} ${{ env.nim_flags }}"
 
       - name: Release - Libraries
         run: |
@@ -102,14 +95,7 @@ jobs:
           path: ${{ env.build_dir }}/${{ env.storage_binary_base }}*
           retention-days: 30
 
-      - name: Release - Upload cirdl build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-${{ env.cirdl_binary }}
-          path: ${{ env.build_dir }}/${{ env.cirdl_binary_base }}*
-          retention-days: 30
-
-      - name: Release - Upload windows libs
+      - name: Release - Upload Windows libs
         if: matrix.os == 'windows'
         uses: actions/upload-artifact@v4
         with:
@@ -139,7 +125,7 @@ jobs:
           }
 
           # Compress and prepare
-          for file in ${{ env.storage_binary_base }}* ${{ env.cirdl_binary_base }}*; do
+          for file in ${{ env.storage_binary_base }}*; do
             if [[ "${file}" == *".exe"* ]]; then
 
               # Windows - binary only

@@ -12,9 +12,6 @@ inputs:
   nim_version:
     description: "Nim version"
     default: "v2.0.14"
-  rust_version:
-    description: "Rust version"
-    default: "1.79.0"
   shell:
     description: "Shell to run commands in"
     default: "bash --noprofile --norc -e -o pipefail"
@@ -24,13 +21,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Rust (Linux)
-      if: inputs.os == 'linux'
-      shell: ${{ inputs.shell }} {0}
-      run: |
-        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs/ | sh -s -- --default-toolchain=${{ inputs.rust_version }} -y
-        echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-
     - name: APT (Linux amd64/arm64)
       if: inputs.os == 'linux' && (inputs.cpu == 'amd64' || inputs.cpu == 'arm64')
       shell: ${{ inputs.shell }} {0}
@@ -66,7 +56,6 @@ runs:
           mingw-w64-ucrt-x86_64-toolchain
           mingw-w64-ucrt-x86_64-cmake
           mingw-w64-ucrt-x86_64-ntldd-git
-          mingw-w64-ucrt-x86_64-rust
 
     - name: MSYS2 (Windows i386)
       if: inputs.os == 'windows' && inputs.cpu == 'i386'
@@ -80,7 +69,6 @@ runs:
           mingw-w64-i686-toolchain
           mingw-w64-i686-cmake
           mingw-w64-i686-ntldd-git
-          mingw-w64-i686-rust
 
     - name: Install gcc 14 on Linux
       # We don't want to install gcc 14 for coverage (Ubuntu 20.04)

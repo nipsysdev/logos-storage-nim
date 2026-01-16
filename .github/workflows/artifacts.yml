@@ -34,12 +34,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install Rust 1.85.0
-        if: matrix.target.os != 'windows-latest'
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: 1.85.0
-
       - name: MSYS2 (Windows amd64)
         if: matrix.target.os == 'windows-latest' && matrix.target.cpu == 'amd64'
         uses: msys2/setup-msys2@v2
@@ -52,7 +46,6 @@ jobs:
             mingw-w64-ucrt-x86_64-toolchain
             mingw-w64-ucrt-x86_64-cmake
             mingw-w64-ucrt-x86_64-ntldd-git
-            mingw-w64-ucrt-x86_64-rust
         run: |
           pacman -Sy --noconfirm make
           git config --global core.symlinks false
